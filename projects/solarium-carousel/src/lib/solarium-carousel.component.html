@@ -1,56 +1,56 @@
 <div 
-    class="slider slider--{{this.showcase_position}}" 
+    class="slider slider--{{this.showcasePosition}}" 
     #slider>
     <div 
         class="slider__container"
         *ngIf="images; else html_content"
-        [style.padding]="showcase? (showcase_horizontal? '0 .5rem' : '.5rem 0') : '0'"
-        [style.minHeight]="(showcase && !showcase_horizontal? slider.offsetHeight * 0.75 : slider.offsetHeight) + 'px'" 
-        [style.transition]="current_transition + 'ms ease-out'" 
-        [style.transform]="is_drag? 'translateX(-' + drag_translate + 'px)' : 'translateX(-' + (slider.offsetWidth * current_content_index) + 'px)'"
-        (touchstart)="start_drag($event, slider.offsetWidth)"
-        (touchmove)="drag_content($event)"
-        (touchend)="end_drag(slider.offsetWidth)">
+        [style.padding]="showcase? (showcaseHorizontal? '0 .5rem' : '.5rem 0') : '0'"
+        [style.minHeight]="(showcase && !showcaseHorizontal? slider.offsetHeight * 0.75 : slider.offsetHeight) + 'px'" 
+        [style.transition]="currentTransition + 'ms ease-out'" 
+        [style.transform]="isDrag? 'translateX(-' + dragTranslate + 'px)' : 'translateX(-' + (slider.offsetWidth * currentContentIndex) + 'px)'"
+        (touchstart)="onDragStart($event, slider.offsetWidth)"
+        (touchmove)="onContentDrag($event)"
+        (touchend)="onDragEnd(slider.offsetWidth)">
         <div 
             *ngIf="loop"
             class="slider__container__image-container" 
-            [style.width]="(showcase && showcase_horizontal? slider.offsetWidth * 0.75 : slider.offsetWidth) + 'px'" 
-            [style.cursor]="images[content_count - 1].action? 'pointer' : 'default'"
-            (click)="content_click_action(images[content_count - 1].action)">
-            <img [src]="images[content_count - 1].path" [alt]="images[content_count - 1].alt? images[content_count - 1].alt : ''" [style.objectFit]="image_fit">
+            [style.width]="(showcase && showcaseHorizontal? slider.offsetWidth * 0.75 : slider.offsetWidth) + 'px'" 
+            [style.cursor]="images[contentCount - 1].action? 'pointer' : 'default'"
+            (click)="onContentClick(images[contentCount - 1].action)">
+            <img [src]="images[contentCount - 1].path" [alt]="images[contentCount - 1].alt? images[contentCount - 1].alt : ''" [style.objectFit]="imageFit">
         </div>
         <div 
             class="slider__container__image-container" 
             *ngFor="let image of images" 
-            [style.width]="(showcase && showcase_horizontal? slider.offsetWidth * 0.75 : slider.offsetWidth) + 'px'" 
+            [style.width]="(showcase && showcaseHorizontal? slider.offsetWidth * 0.75 : slider.offsetWidth) + 'px'" 
             [style.cursor]="image?.action? 'pointer' : 'default'"
-            (click)="content_click_action(image?.action)">
-            <img [src]="image?.path" [alt]="image?.alt? image?.alt : ''" [style.objectFit]="image_fit">
+            (click)="onContentClick(image?.action)">
+            <img [src]="image?.path" [alt]="image?.alt? image?.alt : ''" [style.objectFit]="imageFit">
         </div>
         <div 
             *ngIf="loop"
             class="slider__container__image-container" 
-            [style.width]="(showcase && showcase_horizontal? slider.offsetWidth * 0.75 : slider.offsetWidth) + 'px'" 
+            [style.width]="(showcase && showcaseHorizontal? slider.offsetWidth * 0.75 : slider.offsetWidth) + 'px'" 
             [style.cursor]="images[0].action? 'pointer' : 'default'"
-            (click)="content_click_action(images[0].action)">
-            <img [src]="images[0].path" [alt]="images[0].alt? images[0].alt : ''" [style.objectFit]="image_fit">
+            (click)="onContentClick(images[0].action)">
+            <img [src]="images[0].path" [alt]="images[0].alt? images[0].alt : ''" [style.objectFit]="imageFit">
         </div>
     </div>
     <ng-template #html_content></ng-template>
     <div 
         class="slider__showcase"
-        [style.minHeight]="!showcase_horizontal? (slider.offsetHeight * 0.25) + 'px' : 'fit-content'" 
-        [style.width]="showcase_horizontal? (slider.offsetWidth * 0.25) + 'px' : 'fit-content'" 
-        [style.flexDirection]="showcase_horizontal? 'column' : 'row'"
+        [style.minHeight]="!showcaseHorizontal? (slider.offsetHeight * 0.25) + 'px' : 'fit-content'" 
+        [style.width]="showcaseHorizontal? (slider.offsetWidth * 0.25) + 'px' : 'fit-content'" 
+        [style.flexDirection]="showcaseHorizontal? 'column' : 'row'"
         *ngIf="showcase && images">
         <div class="slider__showcase__back"></div>
         <div 
-            class="slider__showcase__item {{i == current_content_index? 'slider__showcase__item--active' : ''}}"
+            class="slider__showcase__item {{i == currentContentIndex? 'slider__showcase__item--active' : ''}}"
             *ngFor="let image of images; let i = index" 
-            [style.borderColor]="i == current_content_index? showcase_accent : '#00000011'"
-            [style.width]="showcase_horizontal? '100%' : ((slider.offsetWidth/4) + 'px')"
-            [style.height]="!showcase_horizontal? '100%' : ((slider.offsetHeight/4) + 'px')"
-            (click)="change_current(loop? i + 1 : i)">
+            [style.borderColor]="i == currentContentIndex? showcaseAccent : '#00000011'"
+            [style.width]="showcaseHorizontal? '100%' : ((slider.offsetWidth/4) + 'px')"
+            [style.height]="!showcaseHorizontal? '100%' : ((slider.offsetHeight/4) + 'px')"
+            (click)="changeCurrent(loop? i + 1 : i)">
             <img [src]="image?.path" [alt]="image?.alt">
         </div>
         <div class="slider__showcase__forward"></div>
@@ -60,20 +60,20 @@
         #dots_el 
         *ngIf="dots" 
         [style.right]="'calc(50% - ' + dots_el.offsetWidth / 2 + 'px)'"
-        (mouseover)="disable_autoplay()"
-        (mouseleave)="enable_autoplay()">
+        (mouseover)="disableAutoplay()"
+        (mouseleave)="enableAutoplay()">
         <div 
             *ngFor="let image of images; let i = index" 
-            class="slider__dots__container {{i + 1 == current_content_index? 'slider__dots__container--active' : ''}}"
-            (click)="change_current(loop? i + 1 : i)">
+            class="slider__dots__container {{i + 1 == currentContentIndex? 'slider__dots__container--active' : ''}}"
+            (click)="changeCurrent(loop? i + 1 : i)">
             <span class="slider__dots__container__circle"></span>
         </div>
     </div>
     <div 
         class="slider__arrow-wrapper slider__arrow-wrapper--previous {{rtl? 'slider__arrow-wrapper--previous--rtl' : ''}}" 
-        *ngIf="check_arrow_visible(arrows && !(!loop && current_content_index == 0))" 
-        (mouseleave)="enable_autoplay()" 
-        (mouseover)="disable_autoplay()" 
+        *ngIf="check_arrow_visible(arrows && !(!loop && currentContentIndex == 0))" 
+        (mouseleave)="enableAutoplay()" 
+        (mouseover)="disableAutoplay()" 
         (click)="rtl? next() : previous()">
         <div class="slider__arrow-wrapper__arrow slider__arrow-wrapper__arrow--previous {{rtl? 'slider__arrow-wrapper__arrow--previous--rtl' : ''}}">
             <span class="slider__arrow-wrapper__arrow__icon {{rtl? 'slider__arrow-wrapper__arrow__icon--right' : 'slider__arrow-wrapper__arrow__icon--left'}}"></span>
@@ -81,9 +81,9 @@
     </div>
     <div 
         class="slider__arrow-wrapper slider__arrow-wrapper--next {{rtl? 'slider__arrow-wrapper--next--rtl' : ''}}" 
-        *ngIf="check_arrow_visible(arrows && !(!loop && current_content_index == content_count - 1))" 
-        (mouseleave)="enable_autoplay()" 
-        (mouseover)="disable_autoplay()" 
+        *ngIf="check_arrow_visible(arrows && !(!loop && currentContentIndex == contentCount - 1))" 
+        (mouseleave)="enableAutoplay()" 
+        (mouseover)="disableAutoplay()" 
         (click)="rtl? previous() : next()">
         <div class="slider__arrow-wrapper__arrow slider__arrow-wrapper__arrow--next {{rtl? 'slider__arrow-wrapper__arrow--next--rtl' : ''}}">
             <span class="slider__arrow-wrapper__arrow__icon {{rtl? 'slider__arrow-wrapper__arrow__icon--left' : 'slider__arrow-wrapper__arrow__icon--right'}}"></span>
