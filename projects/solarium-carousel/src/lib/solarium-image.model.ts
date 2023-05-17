@@ -1,4 +1,4 @@
-export interface image{
+export interface SolariumImage{
     path: string;
     action?: string;
     alt?: string;

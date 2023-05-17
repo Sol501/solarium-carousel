@@ -10,7 +10,7 @@ import { SolariumCarouselComponent } from './solarium-carousel.component';
   imports: [
   ],
   exports: [
-    SolariumCarouselComponent
+    SolariumCarouselComponent,
   ]
 })
 export class SolariumCarouselModule { }

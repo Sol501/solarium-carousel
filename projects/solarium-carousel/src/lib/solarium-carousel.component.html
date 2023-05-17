@@ -11,30 +11,35 @@
         (touchstart)="onDragStart($event, slider.offsetWidth)"
         (touchmove)="onContentDrag($event)"
         (touchend)="onDragEnd(slider.offsetWidth)">
-        <div 
-            *ngIf="loop"
-            class="slider__container__image-container" 
-            [style.width]="(showcase && showcaseHorizontal? slider.offsetWidth * 0.75 : slider.offsetWidth) + 'px'" 
-            [style.cursor]="images[contentCount - 1].action? 'pointer' : 'default'"
-            (click)="onContentClick(images[contentCount - 1].action)">
-            <img [src]="images[contentCount - 1].path" [alt]="images[contentCount - 1].alt? images[contentCount - 1].alt : ''" [style.objectFit]="imageFit">
-        </div>
-        <div 
-            class="slider__container__image-container" 
-            *ngFor="let image of images" 
-            [style.width]="(showcase && showcaseHorizontal? slider.offsetWidth * 0.75 : slider.offsetWidth) + 'px'" 
-            [style.cursor]="image?.action? 'pointer' : 'default'"
-            (click)="onContentClick(image?.action)">
-            <img [src]="image?.path" [alt]="image?.alt? image?.alt : ''" [style.objectFit]="imageFit">
-        </div>
-        <div 
-            *ngIf="loop"
-            class="slider__container__image-container" 
-            [style.width]="(showcase && showcaseHorizontal? slider.offsetWidth * 0.75 : slider.offsetWidth) + 'px'" 
-            [style.cursor]="images[0].action? 'pointer' : 'default'"
-            (click)="onContentClick(images[0].action)">
-            <img [src]="images[0].path" [alt]="images[0].alt? images[0].alt : ''" [style.objectFit]="imageFit">
-        </div>
+        <ng-container *ngIf="images; else HTMLContent">
+            <div 
+                *ngIf="loop"
+                class="slider__container__image-container" 
+                [style.width]="(showcase && showcaseHorizontal? slider.offsetWidth * 0.75 : slider.offsetWidth) + 'px'" 
+                [style.cursor]="images[contentCount - 1].action? 'pointer' : 'default'"
+                (click)="onContentClick(images[contentCount - 1].action)">
+                <img [src]="images[contentCount - 1].path" [alt]="images[contentCount - 1].alt? images[contentCount - 1].alt : ''" [style.objectFit]="imageFit">
+            </div>
+            <div 
+                class="slider__container__image-container" 
+                *ngFor="let image of images" 
+                [style.width]="(showcase && showcaseHorizontal? slider.offsetWidth * 0.75 : slider.offsetWidth) + 'px'" 
+                [style.cursor]="image?.action? 'pointer' : 'default'"
+                (click)="onContentClick(image?.action)">
+                <img [src]="image?.path" [alt]="image?.alt? image?.alt : ''" [style.objectFit]="imageFit">
+            </div>
+            <div 
+                *ngIf="loop"
+                class="slider__container__image-container" 
+                [style.width]="(showcase && showcaseHorizontal? slider.offsetWidth * 0.75 : slider.offsetWidth) + 'px'" 
+                [style.cursor]="images[0].action? 'pointer' : 'default'"
+                (click)="onContentClick(images[0].action)">
+                <img [src]="images[0].path" [alt]="images[0].alt? images[0].alt : ''" [style.objectFit]="imageFit">
+            </div>
+        </ng-container>
+        <ng-template #HTMLContent>
+            <ng-content></ng-content>
+        </ng-template>
     </div>
     <ng-template #html_content></ng-template>
     <div 

@@ -1,14 +1,22 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, forwardRef } from '@angular/core';
 import { Router } from '@angular/router';
-import { image } from './image-interface';
+import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
+import { SolariumImage } from './solarium-image.model';
 
 @Component({
-  selector: 'lib-solarium-carousel',
+  selector: 'solarium-carousel',
   templateUrl: './solarium-carousel.component.html',
-  styles: [],
+  styleUrls: ['./solarium-carousel.component.scss'],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => SolariumCarouselComponent),
+      multi: true,
+    },
+  ],
 })
-export class SolariumCarouselComponent implements OnInit {
-  @Input() images: image[] = [];
+export class SolariumCarouselComponent implements OnInit, ControlValueAccessor {
+  @Input() images: Array<SolariumImage> = [];
   @Input() cellsShown: number = 1;
   @Input() zoom: boolean | string = false;
   @Input() zoomPosition: string = 'top';
@@ -29,10 +37,13 @@ export class SolariumCarouselComponent implements OnInit {
   showcaseHorizontal: boolean = false;
   dragTranslate: number = 0;
   isDrag: boolean = false;
+
+  onChange: any = () => {};
+  onTouch: any = () => {};
+
   private _autoplayDisabled: boolean = false;
   private _scrollOriginal: number = 0;
   private _dragStart: number = 0;
-
   private _isScrolling: boolean = false;
   private _touchStartX: number = 0;
   private _touchStartY: number = 0;
@@ -52,7 +63,7 @@ export class SolariumCarouselComponent implements OnInit {
     // TODO: content count can be either images length or children content count
     this.contentCount = this.images.length;
 
-    this.currentContentIndex = this.loop ? 1 : 0;
+    this.onValueChanges(this.loop ? 1 : 0);
 
     if (this.contentCount < 2) {
       this.arrows = false;
@@ -64,6 +75,23 @@ export class SolariumCarouselComponent implements OnInit {
       setInterval(() => {
         if (!this._autoplayDisabled) this.next();
       }, this.autoplayInterval);
+  }
+
+  writeValue(obj: number): void {
+    this.currentContentIndex = obj;
+  }
+
+  onValueChanges(index: number): void {
+    this.currentContentIndex = index;
+    this.onChange(this.currentContentIndex);
+  }
+
+  registerOnChange(fn: any): void {
+    this.onChange = fn;
+  }
+
+  registerOnTouched(fn: any): void {
+    this.onTouch = fn;
   }
 
   onTouchStart = (e: any) => {
@@ -113,7 +141,7 @@ export class SolariumCarouselComponent implements OnInit {
     if (this.loop && (loop_index > this.contentCount || loop_index < 1)) {
       this.changeCurrent(loop_index);
       setTimeout(() => {
-        this.currentContentIndex = closest_index;
+        this.onValueChanges(closest_index);
       }, this.currentTransition);
     } else this.changeCurrent(closest_index);
   }
@@ -151,29 +179,29 @@ export class SolariumCarouselComponent implements OnInit {
 
   changeCurrent(new_index: number) {
     this._changeTransition();
-    this.currentContentIndex = new_index;
+    this.onValueChanges(new_index);
   }
 
   next() {
     this._changeTransition();
-    this.currentContentIndex = this.currentContentIndex + this.cellsShown;
+    this.onValueChanges(this.currentContentIndex + this.cellsShown);
     if (!this.loop && this.currentContentIndex >= this.contentCount) {
-      this.currentContentIndex = this.contentCount - this.cellsShown;
+      this.onValueChanges(this.contentCount - this.cellsShown);
     } else if (this.loop && this.currentContentIndex > this.contentCount) {
       setTimeout(() => {
-        this.currentContentIndex = this.currentContentIndex - this.contentCount;
+        this.onValueChanges(this.currentContentIndex - this.contentCount);
       }, this.currentTransition);
     }
   }
 
   previous() {
     this._changeTransition();
-    this.currentContentIndex = this.currentContentIndex - this.cellsShown;
+    this.onValueChanges(this.currentContentIndex - this.cellsShown);
     if (!this.loop && this.currentContentIndex < 0) {
-      this.currentContentIndex = 0;
+      this.onValueChanges(0);
     } else if (this.loop && this.currentContentIndex < 1) {
       setTimeout(() => {
-        this.currentContentIndex = this.contentCount - this.cellsShown + 1;
+        this.onValueChanges(this.contentCount - this.cellsShown + 1);
       }, this.currentTransition);
     }
   }
