@@ -10,7 +10,16 @@ import { SolariumImage } from "./solarium-image.model";
   imports: []
 })
 export class SolariumCarouselComponent implements OnInit {
-  @Input() images: Array<SolariumImage> = [];
+  @Input({ transform: (value: Array<SolariumImage | string>) => {
+    const transformedValue: Array<SolariumImage> = [];
+    value.forEach((value: SolariumImage | string) => {
+      transformedValue.push(
+        typeof value === "string" ? { path: value } : value
+      );
+    });
+    return transformedValue;
+  } })
+  images: Array<SolariumImage> = [];
   @Input() cellsShown: number = 1;
   @Input() zoom: boolean | string = false;
   @Input() zoomPosition: string = "top";
