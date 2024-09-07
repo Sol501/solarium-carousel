@@ -1,12 +1,13 @@
 import { Component, Input, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
 import { SolariumImage } from "./solarium-image.model";
-import { Subject } from "rxjs";
 
 @Component({
   selector: "sol-solarium-carousel",
   templateUrl: "./solarium-carousel.component.html",
-  styleUrls: ["./solarium-carousel.component.scss"]
+  styleUrls: ["./solarium-carousel.component.scss"],
+  standalone: true,
+  imports: []
 })
 export class SolariumCarouselComponent implements OnInit {
   @Input() images: Array<SolariumImage> = [];
@@ -23,8 +24,6 @@ export class SolariumCarouselComponent implements OnInit {
   @Input() imageFit: string = "contain";
   @Input() rtl: boolean | string = false;
   @Input() loop: boolean | string = false;
-
-  lolo = new Subject();
 
   currentTransition: number = 0;
   currentContentIndex: number = 0;
