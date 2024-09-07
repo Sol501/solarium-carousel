@@ -1,22 +1,14 @@
-import { Component, Input, OnInit, forwardRef } from "@angular/core";
+import { Component, Input, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
-import { NG_VALUE_ACCESSOR, ControlValueAccessor } from "@angular/forms";
 import { SolariumImage } from "./solarium-image.model";
 import { Subject } from "rxjs";
 
 @Component({
   selector: "sol-solarium-carousel",
   templateUrl: "./solarium-carousel.component.html",
-  styleUrls: ["./solarium-carousel.component.scss"],
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => SolariumCarouselComponent),
-      multi: true,
-    },
-  ],
+  styleUrls: ["./solarium-carousel.component.scss"]
 })
-export class SolariumCarouselComponent implements OnInit, ControlValueAccessor {
+export class SolariumCarouselComponent implements OnInit {
   @Input() images: Array<SolariumImage> = [];
   @Input() cellsShown: number = 1;
   @Input() zoom: boolean | string = false;
