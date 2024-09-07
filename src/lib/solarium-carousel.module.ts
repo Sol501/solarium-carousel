@@ -2,8 +2,7 @@ import { NgModule } from '@angular/core';
 import { SolariumCarouselComponent } from './solarium-carousel.component';
 
 @NgModule({
-  exports: [
-    SolariumCarouselComponent,
-  ]
+  imports: [SolariumCarouselComponent],
+  exports: [SolariumCarouselComponent],
 })
-export class SolariumCarouselModule { }
+export class SolariumCarouselModule {}
