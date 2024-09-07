@@ -1,12 +1,13 @@
-import { Component, Input, OnInit, forwardRef } from '@angular/core';
-import { Router } from '@angular/router';
-import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
-import { SolariumImage } from './solarium-image.model';
+import { Component, Input, OnInit, forwardRef } from "@angular/core";
+import { Router } from "@angular/router";
+import { NG_VALUE_ACCESSOR, ControlValueAccessor } from "@angular/forms";
+import { SolariumImage } from "./solarium-image.model";
+import { Subject } from "rxjs";
 
 @Component({
-  selector: 'solarium-carousel',
-  templateUrl: './solarium-carousel.component.html',
-  styleUrls: ['./solarium-carousel.component.scss'],
+  selector: "sol-solarium-carousel",
+  templateUrl: "./solarium-carousel.component.html",
+  styleUrls: ["./solarium-carousel.component.scss"],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -19,17 +20,19 @@ export class SolariumCarouselComponent implements OnInit, ControlValueAccessor {
   @Input() images: Array<SolariumImage> = [];
   @Input() cellsShown: number = 1;
   @Input() zoom: boolean | string = false;
-  @Input() zoomPosition: string = 'top';
+  @Input() zoomPosition: string = "top";
   @Input() showcase: boolean | string = false;
-  @Input() showcasePosition: string = 'bottom';
-  @Input() showcaseAccent: string = '#000000';
+  @Input() showcasePosition: string = "bottom";
+  @Input() showcaseAccent: string = "#000000";
   @Input() dots: boolean | string = false;
   @Input() arrows: boolean | string = false;
   @Input() autoplay: boolean | string = false;
   @Input() autoplayInterval: number = 1000;
-  @Input() imageFit: string = 'contain';
+  @Input() imageFit: string = "contain";
   @Input() rtl: boolean | string = false;
   @Input() loop: boolean | string = false;
+
+  lolo = new Subject();
 
   currentTransition: number = 0;
   currentContentIndex: number = 0;
@@ -54,9 +57,9 @@ export class SolariumCarouselComponent implements OnInit, ControlValueAccessor {
   constructor(private router: Router) {}
 
   ngOnInit(): void {
-    document.addEventListener('touchstart', this.onTouchStart);
-    document.addEventListener('touchmove', this.onTouchMove);
-    document.addEventListener('touchend', this.onTouchEnd);
+    document.addEventListener("touchstart", this.onTouchStart);
+    document.addEventListener("touchmove", this.onTouchMove);
+    document.addEventListener("touchend", this.onTouchEnd);
 
     this.validateInput();
 
@@ -207,21 +210,21 @@ export class SolariumCarouselComponent implements OnInit, ControlValueAccessor {
   }
 
   private validateInput() {
-    this.zoom = this.zoom === 'true' || this.zoom === true;
-    this.showcase = this.showcase === 'true' || this.showcase === true;
-    this.dots = this.dots === 'true' || this.dots === true;
-    this.arrows = this.arrows === 'true' || this.arrows === true;
+    this.zoom = this.zoom === "true" || this.zoom === true;
+    this.showcase = this.showcase === "true" || this.showcase === true;
+    this.dots = this.dots === "true" || this.dots === true;
+    this.arrows = this.arrows === "true" || this.arrows === true;
     this.arrows = this.showcase ? false : this.arrows;
-    this.autoplay = this.autoplay === 'true' || this.autoplay === true;
-    this.rtl = this.rtl === 'true' || this.rtl === true;
-    this.loop = this.loop === 'true' || this.loop === true;
-    if (!['top', 'bottom', 'left', 'right'].includes(this.showcasePosition))
-      this.showcasePosition = 'bottom';
+    this.autoplay = this.autoplay === "true" || this.autoplay === true;
+    this.rtl = this.rtl === "true" || this.rtl === true;
+    this.loop = this.loop === "true" || this.loop === true;
+    if (!["top", "bottom", "left", "right"].includes(this.showcasePosition))
+      this.showcasePosition = "bottom";
 
-    if (!['top', 'bottom', 'left', 'right'].includes(this.zoomPosition))
-      this.zoomPosition = 'top';
+    if (!["top", "bottom", "left", "right"].includes(this.zoomPosition))
+      this.zoomPosition = "top";
 
-    this.showcaseHorizontal = ['left', 'right'].includes(this.showcasePosition);
+    this.showcaseHorizontal = ["left", "right"].includes(this.showcasePosition);
   }
 
   private _changeTransition() {

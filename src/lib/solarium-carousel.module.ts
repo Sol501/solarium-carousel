@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { SolariumCarouselComponent } from './solarium-carousel.component';
+import { CommonModule } from '@angular/common';
 
 
 
@@ -8,6 +9,7 @@ import { SolariumCarouselComponent } from './solarium-carousel.component';
     SolariumCarouselComponent
   ],
   imports: [
+    CommonModule
   ],
   exports: [
     SolariumCarouselComponent,

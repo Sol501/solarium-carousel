@@ -76,7 +76,7 @@
     </div>
     <div 
         class="slider__arrow-wrapper slider__arrow-wrapper--previous {{rtl? 'slider__arrow-wrapper--previous--rtl' : ''}}" 
-        *ngIf="check_arrow_visible(arrows && !(!loop && currentContentIndex == 0))" 
+        *ngIf="checkArrowVisible(!!arrows && !(!loop && currentContentIndex == 0))" 
         (mouseleave)="enableAutoplay()" 
         (mouseover)="disableAutoplay()" 
         (click)="rtl? next() : previous()">
@@ -86,7 +86,7 @@
     </div>
     <div 
         class="slider__arrow-wrapper slider__arrow-wrapper--next {{rtl? 'slider__arrow-wrapper--next--rtl' : ''}}" 
-        *ngIf="check_arrow_visible(arrows && !(!loop && currentContentIndex == contentCount - 1))" 
+        *ngIf="checkArrowVisible(!!arrows && !(!loop && currentContentIndex == contentCount - 1))" 
         (mouseleave)="enableAutoplay()" 
         (mouseover)="disableAutoplay()" 
         (click)="rtl? previous() : next()">
