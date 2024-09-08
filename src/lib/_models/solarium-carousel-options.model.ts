@@ -1,5 +1,6 @@
 export interface SolariumCarouselOptions {
   cellsShown?: number;
+  transitionSpeed?: number;
   displayShowcase?: boolean;
   showcasePosition?: SolariumPositionEnum;
   showcaseAccent?: string;

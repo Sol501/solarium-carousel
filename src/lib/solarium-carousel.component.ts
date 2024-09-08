@@ -1,10 +1,22 @@
-import { Component, Input, OnInit } from "@angular/core";
+import {
+  Component,
+  computed,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  signal,
+} from "@angular/core";
 import { Router } from "@angular/router";
 import {
   SolariumImage,
   SolariumCarouselOptions,
   DEFAULT_OPTIONS,
+  DRAG_THRESHOLD,
+  DEFAULT_TRANSITION_SPEED,
 } from "./_models";
+import { interval, Subject, takeUntil, timer } from "rxjs";
 
 @Component({
   selector: "sol-solarium-carousel",
@@ -13,7 +25,7 @@ import {
   standalone: true,
   imports: [],
 })
-export class SolariumCarouselComponent implements OnInit {
+export class SolariumCarouselComponent implements OnInit, OnDestroy {
   @Input({
     transform: (value: Array<SolariumImage | string>) => {
       const transformedValue: Array<SolariumImage> = [];
@@ -27,30 +39,38 @@ export class SolariumCarouselComponent implements OnInit {
   })
   images: Array<SolariumImage> = [];
 
-  @Input({ transform: (value: SolariumCarouselOptions) => ({
-    cellsShown: value.cellsShown?? DEFAULT_OPTIONS.cellsShown,
-    displayShowcase: value.displayShowcase?? DEFAULT_OPTIONS.displayShowcase,
-    showcasePosition: value.showcasePosition?? DEFAULT_OPTIONS.showcasePosition,
-    showcaseAccent: value.showcaseAccent?? DEFAULT_OPTIONS.showcaseAccent,
-    displayDots: value.displayDots?? DEFAULT_OPTIONS.displayDots,
-    displayArrows: value.displayArrows?? DEFAULT_OPTIONS.displayArrows,
-    autoplay: value.autoplay?? DEFAULT_OPTIONS.autoplay,
-    autoplayInterval: value.autoplayInterval?? DEFAULT_OPTIONS.autoplayInterval,
-    imageFit: value.imageFit?? DEFAULT_OPTIONS.imageFit,
-    rtl: value.rtl?? DEFAULT_OPTIONS.rtl,
-    loop: value.loop?? DEFAULT_OPTIONS.loop,
-  }) })
+  @Input({
+    transform: (value: SolariumCarouselOptions) => ({
+      cellsShown: value.cellsShown ?? DEFAULT_OPTIONS.cellsShown,
+      transitionSpeed: value.transitionSpeed ?? DEFAULT_OPTIONS.transitionSpeed,
+      displayShowcase: value.displayShowcase ?? DEFAULT_OPTIONS.displayShowcase,
+      showcasePosition:
+        value.showcasePosition ?? DEFAULT_OPTIONS.showcasePosition,
+      showcaseAccent: value.showcaseAccent ?? DEFAULT_OPTIONS.showcaseAccent,
+      displayDots: value.displayDots ?? DEFAULT_OPTIONS.displayDots,
+      displayArrows: value.displayArrows ?? DEFAULT_OPTIONS.displayArrows,
+      autoplay: value.autoplay ?? DEFAULT_OPTIONS.autoplay,
+      autoplayInterval:
+        value.autoplayInterval ?? DEFAULT_OPTIONS.autoplayInterval,
+      imageFit: value.imageFit ?? DEFAULT_OPTIONS.imageFit,
+      rtl: value.rtl ?? DEFAULT_OPTIONS.rtl,
+      loop: value.loop ?? DEFAULT_OPTIONS.loop,
+    }),
+  })
   options: SolariumCarouselOptions = DEFAULT_OPTIONS;
 
-  currentTransition: number = 0;
-  currentContentIndex: number = 0;
-  contentCount: number = 0;
+  @Output() contentChange: EventEmitter<number> = new EventEmitter<number>();
+  @Output() contentClick: EventEmitter<number> = new EventEmitter<number>();
+
+  destroy$: Subject<boolean> = new Subject<boolean>();
+
+  currentContentIndex = signal<number>(0);
+  currentTransition = signal(0);
+  contentCount = computed<number>(() => this.images.length);
+
   showcaseHorizontal: boolean = false;
   dragTranslate: number = 0;
   isDrag: boolean = false;
-
-  onChange: any = () => {};
-  onTouch: any = () => {};
 
   private _autoplayDisabled: boolean = false;
   private _scrollOriginal: number = 0;
@@ -59,179 +79,199 @@ export class SolariumCarouselComponent implements OnInit {
   private _touchStartX: number = 0;
   private _touchStartY: number = 0;
 
-  // Add a threshold for the distance traveled in the x direction before the carousel's dragging event is triggered
-  private readonly _DRAG_THRESHOLD: number = 100;
-
   constructor(private router: Router) {}
 
   ngOnInit(): void {
-    document.addEventListener("touchstart", this.onTouchStart);
-    document.addEventListener("touchmove", this.onTouchMove);
-    document.addEventListener("touchend", this.onTouchEnd);
+    this._initListeners();
 
-    // TODO: content count can be either images length or children content count
-    this.contentCount = this.images.length;
+    this._changeCurrentContent(this.options.loop ? 1 : 0);
 
-    this.onValueChanges(this.options.loop ? 1 : 0);
+    this._setupAutoplay();
+  }
 
-    if (this.contentCount < 2) {
-      this.options.displayArrows = false;
-      this.options.displayDots = false;
-      this.options.autoplay = false;
+  ngOnDestroy(): void {
+    this.destroy$.next(true);
+    this._removeListeners();
+  }
+
+  onDragStart(e: any, sliderWidth: number): void {
+    if (this._isScrolling) {
+      return;
     }
-
-    if (this.options.autoplay == true)
-      setInterval(() => {
-        if (!this._autoplayDisabled) this.next();
-      }, this.options.autoplayInterval);
-  }
-
-  writeValue(obj: number): void {
-    this.currentContentIndex = obj;
-  }
-
-  onValueChanges(index: number): void {
-    this.currentContentIndex = index;
-    this.onChange(this.currentContentIndex);
-  }
-
-  registerOnChange(fn: any): void {
-    this.onChange = fn;
-  }
-
-  registerOnTouched(fn: any): void {
-    this.onTouch = fn;
-  }
-
-  onTouchStart = (e: any) => {
-    this._touchStartX = e.touches[0].clientX;
-    this._touchStartY = e.touches[0].clientY;
-  };
-
-  onTouchMove = (e: any) => {
-    this._isScrolling = true;
-    // Calculate the distance traveled in the x directions
-    const x_distance = Math.abs(e.touches[0].clientX - this._touchStartX);
-    const y_distance = Math.abs(e.touches[0].clientY - this._touchStartY);
-    // If the distance traveled in the x direction is greater than the threshold distance,
-    // it is a horizontal gesture and the carousel's dragging event should be triggered.
-    // Otherwise, it is a vertical gesture and the carousel's dragging event should be prevented.
-    if (x_distance > this._DRAG_THRESHOLD && x_distance > y_distance) {
-      this._isScrolling = false;
-    }
-  };
-
-  onTouchEnd = () => {
-    this._isScrolling = false;
-  };
-
-  onDragStart(e: any, slider_width: number): void {
-    if (this._isScrolling) return;
     this._autoplayDisabled = true;
     this.isDrag = true;
     this._dragStart = e.pageX || e.touches[0].pageX;
-    this.dragTranslate = this.currentContentIndex * slider_width;
+    this.dragTranslate = this.currentContentIndex() * sliderWidth;
     this._scrollOriginal = this.dragTranslate;
   }
 
-  onDragEnd(slider_width: number) {
+  onDragEnd(sliderWidth: number): void {
     this._autoplayDisabled = false;
     this.isDrag = false;
-    let closest_index = Math.round(this.dragTranslate / slider_width);
-    let loop_index = closest_index;
-    if (loop_index < 0) loop_index = 0;
-    else if (loop_index > this.contentCount + 1) loop_index = this.contentCount;
-    if (this.options.loop && closest_index > this.contentCount)
-      closest_index = 1;
-    else if (this.options.loop && closest_index < 1)
-      closest_index = this.contentCount - (this.options.cellsShown ?? 0) + 1;
-    else if (!this.options.loop && closest_index >= this.contentCount)
-      closest_index = this.contentCount - (this.options.cellsShown ?? 0);
-    else if (!this.options.loop && closest_index < 0) closest_index = 0;
+    let closestIndex = Math.round(this.dragTranslate / sliderWidth);
+    let loopIndex = closestIndex;
+    if (loopIndex < 0) {
+      loopIndex = 0;
+    } else if (loopIndex > this.contentCount() + 1) {
+      loopIndex = this.contentCount();
+    }
+
+    if (this.options.loop && closestIndex > this.contentCount()) {
+      closestIndex = 1;
+    } else if (this.options.loop && closestIndex < 1) {
+      closestIndex = this.contentCount() - (this.options.cellsShown ?? 0) + 1;
+    } else if (!this.options.loop && closestIndex >= this.contentCount()) {
+      closestIndex = this.contentCount() - (this.options.cellsShown ?? 0);
+    } else if (!this.options.loop && closestIndex < 0) {
+      closestIndex = 0;
+    }
+
     if (
       this.options.loop &&
-      (loop_index > this.contentCount || loop_index < 1)
+      (loopIndex > this.contentCount() || loopIndex < 1)
     ) {
-      this.changeCurrent(loop_index);
-      setTimeout(() => {
-        this.onValueChanges(closest_index);
-      }, this.currentTransition);
-    } else this.changeCurrent(closest_index);
+      this.jumpToIndex(loopIndex);
+      this._setTimeout(() => {
+        this._changeCurrentContent(closestIndex);
+      }, this.currentTransition());
+    } else {
+      this.jumpToIndex(closestIndex);
+    }
   }
 
   onContentDrag(e: any): void {
-    if (!this.isDrag || this._isScrolling) return;
+    if (!this.isDrag || this._isScrolling) {
+      return;
+    }
     e.preventDefault();
     const x = e.pageX || e.touches[0].pageX;
     const dist = x - this._dragStart;
     this.dragTranslate = this._scrollOriginal - dist;
   }
 
-  onContentClick(action?: string) {
-    if (!action) return;
-    return this.router.navigateByUrl(action);
+  onContentClick(index: number): void {
+    this.contentClick.emit(index);
+    const actionUrl = this.images[index]?.actionUrl;
+    if (this.images[index]?.actionUrl) {
+      this.router.navigateByUrl(actionUrl ?? "");
+    }
   }
 
-  enableAutoplay() {
+  enableAutoplay(): void {
     this._autoplayDisabled = false;
   }
 
-  disableAutoplay() {
+  disableAutoplay(): void {
     this._autoplayDisabled = true;
   }
 
-  checkArrowVisible(condition: boolean) {
+  jumpToIndex(newIndex: number): void {
+    this._changeTransition();
+    this._changeCurrentContent(newIndex);
+  }
+
+  next(): void {
+    this._changeTransition();
+    this._changeCurrentContent(
+      this.currentContentIndex() + (this.options.cellsShown ?? 0)
+    );
     if (
       !this.options.loop &&
-      (this.currentContentIndex == 0 ||
-        this.currentContentIndex == this.contentCount - 1)
-    )
-      this.enableAutoplay();
-    return condition;
-  }
-
-  changeCurrent(new_index: number) {
-    this._changeTransition();
-    this.onValueChanges(new_index);
-  }
-
-  next() {
-    this._changeTransition();
-    this.onValueChanges(
-      this.currentContentIndex + (this.options.cellsShown ?? 0)
-    );
-    if (!this.options.loop && this.currentContentIndex >= this.contentCount) {
-      this.onValueChanges(this.contentCount - (this.options.cellsShown ?? 0));
+      this.currentContentIndex() >= this.contentCount()
+    ) {
+      this._changeCurrentContent(
+        this.contentCount() - (this.options.cellsShown ?? 0)
+      );
     } else if (
       this.options.loop &&
-      this.currentContentIndex > this.contentCount
+      this.currentContentIndex() > this.contentCount()
     ) {
-      setTimeout(() => {
-        this.onValueChanges(this.currentContentIndex - this.contentCount);
-      }, this.currentTransition);
-    }
-  }
-
-  previous() {
-    this._changeTransition();
-    this.onValueChanges(
-      this.currentContentIndex - (this.options.cellsShown ?? 0)
-    );
-    if (!this.options.loop && this.currentContentIndex < 0) {
-      this.onValueChanges(0);
-    } else if (this.options.loop && this.currentContentIndex < 1) {
-      setTimeout(() => {
-        this.onValueChanges(
-          this.contentCount - (this.options.cellsShown ?? 0) + 1
+      this._setTimeout(() => {
+        this._changeCurrentContent(
+          this.currentContentIndex() - this.contentCount()
         );
-      }, this.currentTransition);
+      }, this.currentTransition());
     }
   }
 
-  private _changeTransition() {
-    this.currentTransition = 300;
-    setTimeout(() => {
-      this.currentTransition = 0;
-    }, 0);
+  previous(): void {
+    this._changeTransition();
+    this._changeCurrentContent(
+      this.currentContentIndex() - (this.options.cellsShown ?? 0)
+    );
+    if (!this.options.loop && this.currentContentIndex() < 0) {
+      this._changeCurrentContent(0);
+    } else if (this.options.loop && this.currentContentIndex() < 1) {
+      this._setTimeout(() => {
+        this._changeCurrentContent(
+          this.contentCount() - (this.options.cellsShown ?? 0) + 1
+        );
+      }, this.currentTransition());
+    }
+  }
+
+  private _onTouchStart(e: TouchEvent): void {
+    this._touchStartX = e.touches[0].clientX;
+    this._touchStartY = e.touches[0].clientY;
+  }
+
+  private _onTouchMove(e: TouchEvent): void {
+    // Calculate the distance traveled in the x directions
+    const xDistance = Math.abs(e.touches[0].clientX - this._touchStartX);
+    const yDistance = Math.abs(e.touches[0].clientY - this._touchStartY);
+    // If the distance traveled in the x direction is greater than the threshold distance,
+    // it is a horizontal gesture and the carousel's dragging event should be triggered.
+    // Otherwise, it is a vertical gesture and the carousel's dragging event should be prevented.
+    this._isScrolling = xDistance <= DRAG_THRESHOLD || xDistance <= yDistance;
+  }
+
+  private _onTouchEnd(): void {
+    this._isScrolling = false;
+  }
+
+  private _initListeners(): void {
+    document.addEventListener("touchstart", this._onTouchStart);
+    document.addEventListener("touchmove", this._onTouchMove);
+    document.addEventListener("touchend", this._onTouchEnd);
+  }
+
+  private _removeListeners(): void {
+    document.removeEventListener("touchstart", this._onTouchStart);
+    document.removeEventListener("touchmove", this._onTouchMove);
+    document.removeEventListener("touchend", this._onTouchEnd);
+  }
+
+  private _changeCurrentContent(index: number): void {
+    this.currentContentIndex.set(index);
+    this.contentChange.emit(index);
+  }
+
+  private _setupAutoplay(): void {
+    if (!this.options.autoplay) {
+      return;
+    }
+    interval(this.options.autoplayInterval)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        if (this.contentCount() <= 1 || this._autoplayDisabled) {
+          return;
+        }
+        this.next();
+      });
+  }
+
+  private _changeTransition(): void {
+    const transitionSpeed: number =
+      this.options.transitionSpeed ?? DEFAULT_TRANSITION_SPEED;
+
+    this.currentTransition.set(transitionSpeed);
+
+    this._setTimeout(() => {
+      this.currentTransition.set(0);
+    });
+  }
+
+  private _setTimeout(callback: () => void, timeout: number = 0): void {
+    timer(timeout).pipe(takeUntil(this.destroy$)).subscribe(callback);
   }
 }
