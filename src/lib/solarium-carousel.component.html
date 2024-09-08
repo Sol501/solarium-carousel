@@ -1,46 +1,46 @@
 <div 
-	class="slider slider--{{this.showcasePosition}}" 
+	class="slider slider--{{options.showcasePosition}}" 
 	#slider>
 	<div 
 		class="slider__container"
-		[style.padding]="showcase? (showcaseHorizontal? '0 .5rem' : '.5rem 0') : '0'"
-		[style.minHeight]="(showcase && !showcaseHorizontal? slider.offsetHeight * 0.75 : slider.offsetHeight) + 'px'" 
+		[style.padding]="options.displayShowcase? (showcaseHorizontal? '0 .5rem' : '.5rem 0') : '0'"
+		[style.minHeight]="(options.displayShowcase && !showcaseHorizontal? slider.offsetHeight * 0.75 : slider.offsetHeight) + 'px'" 
 		[style.transition]="currentTransition + 'ms ease-out'" 
 		[style.transform]="isDrag? 'translateX(-' + dragTranslate + 'px)' : 'translateX(-' + (slider.offsetWidth * currentContentIndex) + 'px)'"
 		(touchstart)="onDragStart($event, slider.offsetWidth)"
 		(touchmove)="onContentDrag($event)"
 		(touchend)="onDragEnd(slider.offsetWidth)">
 		@if (!!images) {
-			@if (loop) {
+			@if (options.loop) {
 				<div 
 					class="slider__container__image-container" 
-					[style.width]="(showcase && showcaseHorizontal? slider.offsetWidth * 0.75 : slider.offsetWidth) + 'px'" 
-					[style.cursor]="images[contentCount - 1].action? 'pointer' : 'default'"
-					(click)="onContentClick(images[contentCount - 1].action)">
-					<img [src]="images[contentCount - 1].path" [alt]="images[contentCount - 1].alt? images[contentCount - 1].alt : ''" [style.objectFit]="imageFit">
+					[style.width]="(options.displayShowcase && showcaseHorizontal? slider.offsetWidth * 0.75 : slider.offsetWidth) + 'px'" 
+					[style.cursor]="images[contentCount - 1].actionUrl? 'pointer' : 'default'"
+					(click)="onContentClick(images[contentCount - 1].actionUrl)">
+					<img [src]="images[contentCount - 1].src" [alt]="images[contentCount - 1].alt? images[contentCount - 1].alt : ''" [style.objectFit]="options.imageFit">
 				</div>
 			}
 			@for (image of images; track image) {
 				<div 
 					class="slider__container__image-container" 
-					[style.width]="(showcase && showcaseHorizontal? slider.offsetWidth * 0.75 : slider.offsetWidth) + 'px'" 
-					[style.cursor]="image?.action? 'pointer' : 'default'"
-					(click)="onContentClick(image?.action)">
-					<img [src]="image?.path" [alt]="image?.alt? image?.alt : ''" [style.objectFit]="imageFit">
+					[style.width]="(options.displayShowcase && showcaseHorizontal? slider.offsetWidth * 0.75 : slider.offsetWidth) + 'px'" 
+					[style.cursor]="image?.actionUrl? 'pointer' : 'default'"
+					(click)="onContentClick(image?.actionUrl)">
+					<img [src]="image?.src" [alt]="image?.alt? image?.alt : ''" [style.objectFit]="options.imageFit">
 				</div>
 			}
-			@if (loop) {
+			@if (options.loop) {
 				<div 
 					class="slider__container__image-container" 
-					[style.width]="(showcase && showcaseHorizontal? slider.offsetWidth * 0.75 : slider.offsetWidth) + 'px'" 
-					[style.cursor]="images[0].action? 'pointer' : 'default'"
-					(click)="onContentClick(images[0].action)">
-					<img [src]="images[0].path" [alt]="images[0].alt? images[0].alt : ''" [style.objectFit]="imageFit">
+					[style.width]="(options.displayShowcase && showcaseHorizontal? slider.offsetWidth * 0.75 : slider.offsetWidth) + 'px'" 
+					[style.cursor]="images[0].actionUrl? 'pointer' : 'default'"
+					(click)="onContentClick(images[0].actionUrl)">
+					<img [src]="images[0].src" [alt]="images[0].alt? images[0].alt : ''" [style.objectFit]="options.imageFit">
 				</div>
 			}
 		}
 	</div>
-	@if (showcase && !!images) {
+	@if (options.displayShowcase && !!images) {
 		<div 
 			class="slider__showcase"
 			[style.minHeight]="!showcaseHorizontal? (slider.offsetHeight * 0.25) + 'px' : 'fit-content'" 
@@ -50,17 +50,17 @@
 			@for (image of images; track image; let i = $index) {
 				<div 
 					class="slider__showcase__item {{i == currentContentIndex? 'slider__showcase__item--active' : ''}}"
-					[style.borderColor]="i == currentContentIndex? showcaseAccent : '#00000011'"
+					[style.borderColor]="i == currentContentIndex? options.showcaseAccent : '#00000011'"
 					[style.width]="showcaseHorizontal? '100%' : ((slider.offsetWidth/4) + 'px')"
 					[style.height]="!showcaseHorizontal? '100%' : ((slider.offsetHeight/4) + 'px')"
-					(click)="changeCurrent(loop? i + 1 : i)">
-					<img [src]="image?.path" [alt]="image?.alt">
+					(click)="changeCurrent(options.loop? i + 1 : i)">
+					<img [src]="image?.src" [alt]="image?.alt">
 				</div>
 			}
 			<div class="slider__showcase__forward"></div>
 		</div>
 	}
-	@if (dots) {
+	@if (options.displayDots) {
 		<div 
 			class="slider__dots" 
 			#dotsEl 
@@ -70,31 +70,31 @@
 			@for (image of images; track image; let i = $index) {
 				<div 
 					class="slider__dots__container {{i + 1 == currentContentIndex? 'slider__dots__container--active' : ''}}"
-					(click)="changeCurrent(loop? i + 1 : i)">
+					(click)="changeCurrent(options.loop? i + 1 : i)">
 					<span class="slider__dots__container__circle"></span>
 				</div>
 			}
 		</div>
 	}
-	@if (checkArrowVisible(!!arrows && !(!loop && currentContentIndex == 0))) {
+	@if (checkArrowVisible(!!options.displayArrows && !(!options.loop && currentContentIndex == 0))) {
 		<div 
-			class="slider__arrow-wrapper slider__arrow-wrapper--previous {{rtl? 'slider__arrow-wrapper--previous--rtl' : ''}}" 
+			class="slider__arrow-wrapper slider__arrow-wrapper--previous {{options.rtl? 'slider__arrow-wrapper--previous--rtl' : ''}}" 
 			(mouseleave)="enableAutoplay()" 
 			(mouseover)="disableAutoplay()" 
-			(click)="rtl? next() : previous()">
-			<div class="slider__arrow-wrapper__arrow slider__arrow-wrapper__arrow--previous {{rtl? 'slider__arrow-wrapper__arrow--previous--rtl' : ''}}">
-				<span class="slider__arrow-wrapper__arrow__icon {{rtl? 'slider__arrow-wrapper__arrow__icon--right' : 'slider__arrow-wrapper__arrow__icon--left'}}"></span>
+			(click)="options.rtl? next() : previous()">
+			<div class="slider__arrow-wrapper__arrow slider__arrow-wrapper__arrow--previous {{options.rtl? 'slider__arrow-wrapper__arrow--previous--rtl' : ''}}">
+				<span class="slider__arrow-wrapper__arrow__icon {{options.rtl? 'slider__arrow-wrapper__arrow__icon--right' : 'slider__arrow-wrapper__arrow__icon--left'}}"></span>
 			</div>
 		</div>
 	}
-	@if (checkArrowVisible(!!arrows && !(!loop && currentContentIndex == contentCount - 1))) {
+	@if (checkArrowVisible(!!options.displayArrows && !(!options.loop && currentContentIndex == contentCount - 1))) {
 		<div 
-			class="slider__arrow-wrapper slider__arrow-wrapper--next {{rtl? 'slider__arrow-wrapper--next--rtl' : ''}}" 
+			class="slider__arrow-wrapper slider__arrow-wrapper--next {{options.rtl? 'slider__arrow-wrapper--next--rtl' : ''}}" 
 			(mouseleave)="enableAutoplay()" 
 			(mouseover)="disableAutoplay()" 
-			(click)="rtl? previous() : next()">
-			<div class="slider__arrow-wrapper__arrow slider__arrow-wrapper__arrow--next {{rtl? 'slider__arrow-wrapper__arrow--next--rtl' : ''}}">
-				<span class="slider__arrow-wrapper__arrow__icon {{rtl? 'slider__arrow-wrapper__arrow__icon--left' : 'slider__arrow-wrapper__arrow__icon--right'}}"></span>
+			(click)="options.rtl? previous() : next()">
+			<div class="slider__arrow-wrapper__arrow slider__arrow-wrapper__arrow--next {{options.rtl? 'slider__arrow-wrapper__arrow--next--rtl' : ''}}">
+				<span class="slider__arrow-wrapper__arrow__icon {{options.rtl? 'slider__arrow-wrapper__arrow__icon--left' : 'slider__arrow-wrapper__arrow__icon--right'}}"></span>
 			</div>
 		</div>
 	}

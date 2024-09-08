@@ -1,38 +1,46 @@
 import { Component, Input, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
-import { SolariumImage } from "./solarium-image.model";
+import {
+  SolariumImage,
+  SolariumCarouselOptions,
+  DEFAULT_OPTIONS,
+} from "./_models";
 
 @Component({
   selector: "sol-solarium-carousel",
   templateUrl: "./solarium-carousel.component.html",
   styleUrls: ["./solarium-carousel.component.scss"],
   standalone: true,
-  imports: []
+  imports: [],
 })
 export class SolariumCarouselComponent implements OnInit {
-  @Input({ transform: (value: Array<SolariumImage | string>) => {
-    const transformedValue: Array<SolariumImage> = [];
-    value.forEach((value: SolariumImage | string) => {
-      transformedValue.push(
-        typeof value === "string" ? { path: value } : value
-      );
-    });
-    return transformedValue;
-  } })
+  @Input({
+    transform: (value: Array<SolariumImage | string>) => {
+      const transformedValue: Array<SolariumImage> = [];
+      value.forEach((value: SolariumImage | string) => {
+        transformedValue.push(
+          typeof value === "string" ? { src: value } : value
+        );
+      });
+      return transformedValue;
+    },
+  })
   images: Array<SolariumImage> = [];
-  @Input() cellsShown: number = 1;
-  @Input() zoom: boolean | string = false;
-  @Input() zoomPosition: string = "top";
-  @Input() showcase: boolean | string = false;
-  @Input() showcasePosition: string = "bottom";
-  @Input() showcaseAccent: string = "#000000";
-  @Input() dots: boolean | string = false;
-  @Input() arrows: boolean | string = false;
-  @Input() autoplay: boolean | string = false;
-  @Input() autoplayInterval: number = 1000;
-  @Input() imageFit: string = "contain";
-  @Input() rtl: boolean | string = false;
-  @Input() loop: boolean | string = false;
+
+  @Input({ transform: (value: SolariumCarouselOptions) => ({
+    cellsShown: value.cellsShown?? DEFAULT_OPTIONS.cellsShown,
+    displayShowcase: value.displayShowcase?? DEFAULT_OPTIONS.displayShowcase,
+    showcasePosition: value.showcasePosition?? DEFAULT_OPTIONS.showcasePosition,
+    showcaseAccent: value.showcaseAccent?? DEFAULT_OPTIONS.showcaseAccent,
+    displayDots: value.displayDots?? DEFAULT_OPTIONS.displayDots,
+    displayArrows: value.displayArrows?? DEFAULT_OPTIONS.displayArrows,
+    autoplay: value.autoplay?? DEFAULT_OPTIONS.autoplay,
+    autoplayInterval: value.autoplayInterval?? DEFAULT_OPTIONS.autoplayInterval,
+    imageFit: value.imageFit?? DEFAULT_OPTIONS.imageFit,
+    rtl: value.rtl?? DEFAULT_OPTIONS.rtl,
+    loop: value.loop?? DEFAULT_OPTIONS.loop,
+  }) })
+  options: SolariumCarouselOptions = DEFAULT_OPTIONS;
 
   currentTransition: number = 0;
   currentContentIndex: number = 0;
@@ -61,23 +69,21 @@ export class SolariumCarouselComponent implements OnInit {
     document.addEventListener("touchmove", this.onTouchMove);
     document.addEventListener("touchend", this.onTouchEnd);
 
-    this.validateInput();
-
     // TODO: content count can be either images length or children content count
     this.contentCount = this.images.length;
 
-    this.onValueChanges(this.loop ? 1 : 0);
+    this.onValueChanges(this.options.loop ? 1 : 0);
 
     if (this.contentCount < 2) {
-      this.arrows = false;
-      this.dots = false;
-      this.autoplay = false;
+      this.options.displayArrows = false;
+      this.options.displayDots = false;
+      this.options.autoplay = false;
     }
 
-    if (this.autoplay == true)
+    if (this.options.autoplay == true)
       setInterval(() => {
         if (!this._autoplayDisabled) this.next();
-      }, this.autoplayInterval);
+      }, this.options.autoplayInterval);
   }
 
   writeValue(obj: number): void {
@@ -135,13 +141,17 @@ export class SolariumCarouselComponent implements OnInit {
     let loop_index = closest_index;
     if (loop_index < 0) loop_index = 0;
     else if (loop_index > this.contentCount + 1) loop_index = this.contentCount;
-    if (this.loop && closest_index > this.contentCount) closest_index = 1;
-    else if (this.loop && closest_index < 1)
-      closest_index = this.contentCount - this.cellsShown + 1;
-    else if (!this.loop && closest_index >= this.contentCount)
-      closest_index = this.contentCount - this.cellsShown;
-    else if (!this.loop && closest_index < 0) closest_index = 0;
-    if (this.loop && (loop_index > this.contentCount || loop_index < 1)) {
+    if (this.options.loop && closest_index > this.contentCount)
+      closest_index = 1;
+    else if (this.options.loop && closest_index < 1)
+      closest_index = this.contentCount - (this.options.cellsShown ?? 0) + 1;
+    else if (!this.options.loop && closest_index >= this.contentCount)
+      closest_index = this.contentCount - (this.options.cellsShown ?? 0);
+    else if (!this.options.loop && closest_index < 0) closest_index = 0;
+    if (
+      this.options.loop &&
+      (loop_index > this.contentCount || loop_index < 1)
+    ) {
       this.changeCurrent(loop_index);
       setTimeout(() => {
         this.onValueChanges(closest_index);
@@ -172,7 +182,7 @@ export class SolariumCarouselComponent implements OnInit {
 
   checkArrowVisible(condition: boolean) {
     if (
-      !this.loop &&
+      !this.options.loop &&
       (this.currentContentIndex == 0 ||
         this.currentContentIndex == this.contentCount - 1)
     )
@@ -187,10 +197,15 @@ export class SolariumCarouselComponent implements OnInit {
 
   next() {
     this._changeTransition();
-    this.onValueChanges(this.currentContentIndex + this.cellsShown);
-    if (!this.loop && this.currentContentIndex >= this.contentCount) {
-      this.onValueChanges(this.contentCount - this.cellsShown);
-    } else if (this.loop && this.currentContentIndex > this.contentCount) {
+    this.onValueChanges(
+      this.currentContentIndex + (this.options.cellsShown ?? 0)
+    );
+    if (!this.options.loop && this.currentContentIndex >= this.contentCount) {
+      this.onValueChanges(this.contentCount - (this.options.cellsShown ?? 0));
+    } else if (
+      this.options.loop &&
+      this.currentContentIndex > this.contentCount
+    ) {
       setTimeout(() => {
         this.onValueChanges(this.currentContentIndex - this.contentCount);
       }, this.currentTransition);
@@ -199,32 +214,18 @@ export class SolariumCarouselComponent implements OnInit {
 
   previous() {
     this._changeTransition();
-    this.onValueChanges(this.currentContentIndex - this.cellsShown);
-    if (!this.loop && this.currentContentIndex < 0) {
+    this.onValueChanges(
+      this.currentContentIndex - (this.options.cellsShown ?? 0)
+    );
+    if (!this.options.loop && this.currentContentIndex < 0) {
       this.onValueChanges(0);
-    } else if (this.loop && this.currentContentIndex < 1) {
+    } else if (this.options.loop && this.currentContentIndex < 1) {
       setTimeout(() => {
-        this.onValueChanges(this.contentCount - this.cellsShown + 1);
+        this.onValueChanges(
+          this.contentCount - (this.options.cellsShown ?? 0) + 1
+        );
       }, this.currentTransition);
     }
-  }
-
-  private validateInput() {
-    this.zoom = this.zoom === "true" || this.zoom === true;
-    this.showcase = this.showcase === "true" || this.showcase === true;
-    this.dots = this.dots === "true" || this.dots === true;
-    this.arrows = this.arrows === "true" || this.arrows === true;
-    this.arrows = this.showcase ? false : this.arrows;
-    this.autoplay = this.autoplay === "true" || this.autoplay === true;
-    this.rtl = this.rtl === "true" || this.rtl === true;
-    this.loop = this.loop === "true" || this.loop === true;
-    if (!["top", "bottom", "left", "right"].includes(this.showcasePosition))
-      this.showcasePosition = "bottom";
-
-    if (!["top", "bottom", "left", "right"].includes(this.zoomPosition))
-      this.zoomPosition = "top";
-
-    this.showcaseHorizontal = ["left", "right"].includes(this.showcasePosition);
   }
 
   private _changeTransition() {
