@@ -66,7 +66,7 @@ export class SolariumCarouselComponent implements OnInit, OnDestroy {
 
   currentContentIndex = signal<number>(0);
   currentTransition = signal(0);
-  contentCount = computed<number>(() => this.images.length);
+  contentCount = computed<number>(() => this.images?.length);
 
   showcaseHorizontal: boolean = false;
   dragTranslate: number = 0;
