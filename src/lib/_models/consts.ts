@@ -5,12 +5,14 @@ import {
 } from "./";
 
 export const DEFAULT_TRANSITION_SPEED: number = 300;
+export const DEFAULT_SHOWCASE_SIZE_PERCENTAGE: number = 0.25;
 
 export const DEFAULT_OPTIONS: SolariumCarouselOptions = {
   cellsShown: 1,
   transitionSpeed: DEFAULT_TRANSITION_SPEED,
   displayShowcase: false,
   showcasePosition: SolariumPositionEnum.Bottom,
+  showcaseSizePercentage: DEFAULT_SHOWCASE_SIZE_PERCENTAGE,
   showcaseAccent: "#000000",
   displayDots: false,
   displayArrows: false,

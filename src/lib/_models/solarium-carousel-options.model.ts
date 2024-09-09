@@ -4,6 +4,7 @@ export interface SolariumCarouselOptions {
   displayShowcase?: boolean;
   showcasePosition?: SolariumPositionEnum;
   showcaseAccent?: string;
+  showcaseSizePercentage?: number;
   displayDots?: boolean;
   displayArrows?: boolean;
   autoplay?: boolean;

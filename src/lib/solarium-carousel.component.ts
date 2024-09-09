@@ -46,6 +46,8 @@ export class SolariumCarouselComponent implements OnInit, OnDestroy {
       displayShowcase: value.displayShowcase ?? DEFAULT_OPTIONS.displayShowcase,
       showcasePosition:
         value.showcasePosition ?? DEFAULT_OPTIONS.showcasePosition,
+      showcaseSizePercentage:
+        value.showcaseSizePercentage ?? DEFAULT_OPTIONS.showcaseSizePercentage,
       showcaseAccent: value.showcaseAccent ?? DEFAULT_OPTIONS.showcaseAccent,
       displayDots: value.displayDots ?? DEFAULT_OPTIONS.displayDots,
       displayArrows: value.displayArrows ?? DEFAULT_OPTIONS.displayArrows,
@@ -67,6 +69,15 @@ export class SolariumCarouselComponent implements OnInit, OnDestroy {
   currentContentIndex = signal<number>(0);
   currentTransition = signal(0);
   contentCount = computed<number>(() => this.images?.length);
+  showcaseSizePercentage = computed<number>(() => {
+    const highestPercentage = 100;
+    const lowestPercentage = 0;
+    const percentage: number =
+      (this.options?.showcaseSizePercentage ?? lowestPercentage) /
+      highestPercentage;
+    return Math.max(Math.min(percentage, highestPercentage), lowestPercentage);
+  });
+  sliderSizePercentage = computed<number>(() => 1 - this.showcaseSizePercentage());
 
   showcaseHorizontal: boolean = false;
   dragTranslate: number = 0;
