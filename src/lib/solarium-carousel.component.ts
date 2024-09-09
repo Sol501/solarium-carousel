@@ -17,13 +17,14 @@ import {
   DEFAULT_TRANSITION_SPEED,
 } from "./_models";
 import { interval, Subject, takeUntil, timer } from "rxjs";
+import { NgClass } from "@angular/common";
 
 @Component({
   selector: "sol-solarium-carousel",
   templateUrl: "./solarium-carousel.component.html",
   styleUrls: ["./solarium-carousel.component.scss"],
   standalone: true,
-  imports: [],
+  imports: [NgClass],
 })
 export class SolariumCarouselComponent implements OnInit, OnDestroy {
   @Input({

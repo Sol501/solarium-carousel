@@ -1,5 +1,5 @@
 <div 
-	class="slider slider--{{options.showcasePosition}}" 
+	[ngClass]="['slider', 'slider--' + options.showcasePosition]" 
 	#slider>
 	<div 
 		class="slider__container"
@@ -13,7 +13,7 @@
 		@if (!!images) {
 			@if (options.loop) {
 				<div 
-					class="slider__container__image-container" 
+					class="slider__image-container" 
 					[style.width]="(options.displayShowcase && showcaseHorizontal? slider.offsetWidth * sliderSizePercentage() : slider.offsetWidth) + 'px'" 
 					[style.cursor]="images[contentCount() - 1].actionUrl? 'pointer' : 'default'"
 					(click)="onContentClick(contentCount() - 1)">
@@ -22,7 +22,7 @@
 			}
 			@for (image of images; track image; let i = $index) {
 				<div 
-					class="slider__container__image-container" 
+					class="slider__image-container" 
 					[style.width]="(options.displayShowcase && showcaseHorizontal? slider.offsetWidth * sliderSizePercentage() : slider.offsetWidth) + 'px'" 
 					[style.cursor]="image?.actionUrl? 'pointer' : 'default'"
 					(click)="onContentClick(i)">
@@ -31,7 +31,7 @@
 			}
 			@if (options.loop) {
 				<div 
-					class="slider__container__image-container" 
+					class="slider__image-container" 
 					[style.width]="(options.displayShowcase && showcaseHorizontal? slider.offsetWidth * sliderSizePercentage() : slider.offsetWidth) + 'px'" 
 					[style.cursor]="images[0].actionUrl? 'pointer' : 'default'"
 					(click)="onContentClick(0)">
@@ -42,14 +42,17 @@
 	</div>
 	@if (options.displayShowcase && !!images) {
 		<div 
-			class="slider__showcase"
+			class="showcase"
 			[style.minHeight]="!showcaseHorizontal? (slider.offsetHeight * showcaseSizePercentage()) + 'px' : 'fit-content'" 
 			[style.width]="showcaseHorizontal? (slider.offsetWidth * showcaseSizePercentage()) + 'px' : 'fit-content'" 
 			[style.flexDirection]="showcaseHorizontal? 'column' : 'row'">
-			<div class="slider__showcase__back"></div>
+			<div class="showcase__back"></div>
 			@for (image of images; track image; let i = $index) {
 				<div 
-					class="slider__showcase__item {{i == currentContentIndex()? 'slider__showcase__item--active' : ''}}"
+					class="showcase__item"
+					[ngClass]="{
+						'showcase__item--active': i === currentContentIndex()
+					}"
 					[style.borderColor]="i == currentContentIndex()? options.showcaseAccent : '#00000011'"
 					[style.width]="showcaseHorizontal? '100%' : ((slider.offsetWidth * showcaseSizePercentage()) + 'px')"
 					[style.height]="!showcaseHorizontal? '100%' : ((slider.offsetHeight * showcaseSizePercentage()) + 'px')"
@@ -57,44 +60,57 @@
 					<img [src]="image?.src" [alt]="image?.alt">
 				</div>
 			}
-			<div class="slider__showcase__forward"></div>
+			<div class="showcase__forward"></div>
 		</div>
 	}
 	@if (this.contentCount() > 1 && options.displayDots) {
 		<div 
-			class="slider__dots" 
+			class="dots" 
 			#dotsEl 
 			[style.right]="'calc(50% - ' + dotsEl.offsetWidth / 2 + 'px)'"
 			(mouseover)="disableAutoplay()"
 			(mouseleave)="enableAutoplay()">
 			@for (image of images; track image; let i = $index) {
 				<div 
-					class="slider__dots__container {{(options.loop? i + 1 : i) == currentContentIndex()? 'slider__dots__container--active' : ''}}"
+					class="dots__container"
+					[ngClass]="{
+						'dots__container--active': (options.loop? i + 1 : i) === currentContentIndex()
+					}"
 					(click)="jumpToIndex(options.loop? i + 1 : i)">
-					<span class="slider__dots__container__circle"></span>
+					<span class="dots__circle"></span>
 				</div>
 			}
 		</div>
 	}
 	@if (this.contentCount() > 1 && options.displayArrows && (options.loop || currentContentIndex() !== 0)) {
 		<div 
-			class="slider__arrow-wrapper slider__arrow-wrapper--previous {{options.rtl? 'slider__arrow-wrapper--previous--rtl' : ''}}" 
+			class="arrow-wrapper" 
+			[ngClass]="options.rtl? 'arrow-wrapper--previous-rtl' : 'arrow-wrapper--previous'"
 			(mouseleave)="enableAutoplay()" 
 			(mouseover)="disableAutoplay()" 
 			(click)="options.rtl? next() : previous()">
-			<div class="slider__arrow-wrapper__arrow slider__arrow-wrapper__arrow--previous {{options.rtl? 'slider__arrow-wrapper__arrow--previous--rtl' : ''}}">
-				<span class="slider__arrow-wrapper__arrow__icon {{options.rtl? 'slider__arrow-wrapper__arrow__icon--right' : 'slider__arrow-wrapper__arrow__icon--left'}}"></span>
+			<div 
+				class="arrow-wrapper__arrow"
+				[ngClass]="options.rtl? 'arrow-wrapper__arrow--previous-rtl' : 'arrow-wrapper__arrow--previous'">
+				<span 
+					class="arrow-wrapper__icon"
+					[ngClass]="options.rtl? 'arrow-wrapper__icon--right' : 'arrow-wrapper__icon--left'"></span>
 			</div>
 		</div>
 	}
 	@if (this.contentCount() > 1 && options.displayArrows && (options.loop || currentContentIndex() !== contentCount() - 1)) {
 		<div 
-			class="slider__arrow-wrapper slider__arrow-wrapper--next {{options.rtl? 'slider__arrow-wrapper--next--rtl' : ''}}" 
+			class="arrow-wrapper" 
+			[ngClass]="options.rtl? 'arrow-wrapper--next-rtl' : 'arrow-wrapper--next'"
 			(mouseleave)="enableAutoplay()" 
 			(mouseover)="disableAutoplay()" 
 			(click)="options.rtl? previous() : next()">
-			<div class="slider__arrow-wrapper__arrow slider__arrow-wrapper__arrow--next {{options.rtl? 'slider__arrow-wrapper__arrow--next--rtl' : ''}}">
-				<span class="slider__arrow-wrapper__arrow__icon {{options.rtl? 'slider__arrow-wrapper__arrow__icon--left' : 'slider__arrow-wrapper__arrow__icon--right'}}"></span>
+			<div 
+				class="arrow-wrapper__arrow"
+				[ngClass]="options.rtl? 'arrow-wrapper__arrow--next-rtl' : 'arrow-wrapper__arrow--next'">
+				<span 
+					class="arrow-wrapper__icon"
+					[ngClass]="options.rtl? 'arrow-wrapper__icon--left' : 'arrow-wrapper__icon--right'"></span>
 			</div>
 		</div>
 	}
