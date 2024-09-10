@@ -67,7 +67,7 @@ export class SolariumCarouselComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this._initListeners();
 
-    this._changeCurrentContent(this.options.loop ? 1 : 0);
+    this._changeCurrentContent(this.options?.loop ? 1 : 0);
 
     this._setupAutoplay();
   }
@@ -99,18 +99,18 @@ export class SolariumCarouselComponent implements OnInit, OnDestroy {
       loopIndex = this.contentCount();
     }
 
-    if (this.options.loop && closestIndex > this.contentCount()) {
+    if (this.options?.loop && closestIndex > this.contentCount()) {
       closestIndex = 1;
-    } else if (this.options.loop && closestIndex < 1) {
-      closestIndex = this.contentCount() - (this.options.cellsShown ?? 0) + 1;
-    } else if (!this.options.loop && closestIndex >= this.contentCount()) {
-      closestIndex = this.contentCount() - (this.options.cellsShown ?? 0);
-    } else if (!this.options.loop && closestIndex < 0) {
+    } else if (this.options?.loop && closestIndex < 1) {
+      closestIndex = this.contentCount() - (this.options?.cellsShown ?? 0) + 1;
+    } else if (!this.options?.loop && closestIndex >= this.contentCount()) {
+      closestIndex = this.contentCount() - (this.options?.cellsShown ?? 0);
+    } else if (!this.options?.loop && closestIndex < 0) {
       closestIndex = 0;
     }
 
     if (
-      this.options.loop &&
+      this.options?.loop &&
       (loopIndex > this.contentCount() || loopIndex < 1)
     ) {
       this.jumpToIndex(loopIndex);
@@ -156,17 +156,17 @@ export class SolariumCarouselComponent implements OnInit, OnDestroy {
   next(): void {
     this._changeTransition();
     this._changeCurrentContent(
-      this.currentContentIndex() + (this.options.cellsShown ?? 0)
+      this.currentContentIndex() + (this.options?.cellsShown ?? 0)
     );
     if (
-      !this.options.loop &&
+      !this.options?.loop &&
       this.currentContentIndex() >= this.contentCount()
     ) {
       this._changeCurrentContent(
-        this.contentCount() - (this.options.cellsShown ?? 0)
+        this.contentCount() - (this.options?.cellsShown ?? 0)
       );
     } else if (
-      this.options.loop &&
+      this.options?.loop &&
       this.currentContentIndex() > this.contentCount()
     ) {
       this._setTimeout(() => {
@@ -180,14 +180,14 @@ export class SolariumCarouselComponent implements OnInit, OnDestroy {
   previous(): void {
     this._changeTransition();
     this._changeCurrentContent(
-      this.currentContentIndex() - (this.options.cellsShown ?? 0)
+      this.currentContentIndex() - (this.options?.cellsShown ?? 0)
     );
-    if (!this.options.loop && this.currentContentIndex() < 0) {
+    if (!this.options?.loop && this.currentContentIndex() < 0) {
       this._changeCurrentContent(0);
-    } else if (this.options.loop && this.currentContentIndex() < 1) {
+    } else if (this.options?.loop && this.currentContentIndex() < 1) {
       this._setTimeout(() => {
         this._changeCurrentContent(
-          this.contentCount() - (this.options.cellsShown ?? 0) + 1
+          this.contentCount() - (this.options?.cellsShown ?? 0) + 1
         );
       }, this.currentTransition());
     }
@@ -230,10 +230,10 @@ export class SolariumCarouselComponent implements OnInit, OnDestroy {
   }
 
   private _setupAutoplay(): void {
-    if (!this.options.autoplay) {
+    if (!this.options?.autoplay) {
       return;
     }
-    interval(this.options.autoplayInterval)
+    interval(this.options?.autoplayInterval)
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         if (this.contentCount() <= 1 || this._autoplayDisabled) {
@@ -245,7 +245,7 @@ export class SolariumCarouselComponent implements OnInit, OnDestroy {
 
   private _changeTransition(): void {
     const transitionSpeed: number =
-      this.options.transitionSpeed ?? DEFAULT_TRANSITION_SPEED;
+      this.options?.transitionSpeed ?? DEFAULT_TRANSITION_SPEED;
 
     this.currentTransition.set(transitionSpeed);
 
