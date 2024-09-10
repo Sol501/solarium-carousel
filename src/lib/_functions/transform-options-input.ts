@@ -9,15 +9,21 @@ import { convertToNumber } from "./convert-to-number";
 import { convertToStringEnum } from "./convert-to-string-enum";
 
 export function transformOptionsInput(value: any): SolariumCarouselOptions {
+  const transitionSpeed: number = convertToNumber(
+    value.transitionSpeed,
+    DEFAULT_OPTIONS.transitionSpeed ?? 0
+  );
+  const autoplayInterval = convertToNumber(
+    Math.max(value.autoplayInterval, transitionSpeed),
+    DEFAULT_OPTIONS.autoplayInterval ?? transitionSpeed
+  );
+
   return {
     cellsShown: convertToNumber(
       value.cellsShown,
       DEFAULT_OPTIONS.cellsShown ?? 0
     ),
-    transitionSpeed: convertToNumber(
-      value.transitionSpeed,
-      DEFAULT_OPTIONS.transitionSpeed ?? 0
-    ),
+    transitionSpeed,
     displayShowcase: convertToBoolean(
       value.displayShowcase,
       !!DEFAULT_OPTIONS.displayShowcase
@@ -41,10 +47,7 @@ export function transformOptionsInput(value: any): SolariumCarouselOptions {
       !!DEFAULT_OPTIONS.displayArrows
     ),
     autoplay: convertToBoolean(value.autoplay, !!DEFAULT_OPTIONS.autoplay),
-    autoplayInterval: convertToNumber(
-      value.autoplayInterval,
-      DEFAULT_OPTIONS.autoplayInterval ?? 0
-    ),
+    autoplayInterval,
     imageFit: convertToStringEnum(
       value.imageFit,
       SolariumImageFitEnum,
