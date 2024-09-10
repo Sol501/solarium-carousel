@@ -18,6 +18,7 @@ import {
 } from "./_models";
 import { interval, Subject, takeUntil, timer } from "rxjs";
 import { NgClass } from "@angular/common";
+import { transformImageInput, transformOptionsInput } from "./_functions";
 
 @Component({
   selector: "sol-solarium-carousel",
@@ -28,37 +29,12 @@ import { NgClass } from "@angular/common";
 })
 export class SolariumCarouselComponent implements OnInit, OnDestroy {
   @Input({
-    transform: (value: Array<SolariumImage | string>) => {
-      const transformedValue: Array<SolariumImage> = [];
-      value.forEach((value: SolariumImage | string) => {
-        transformedValue.push(
-          typeof value === "string" ? { src: value } : value
-        );
-      });
-      return transformedValue;
-    },
+    transform: transformImageInput,
   })
   images: Array<SolariumImage> = [];
 
   @Input({
-    transform: (value: SolariumCarouselOptions) => ({
-      cellsShown: value.cellsShown ?? DEFAULT_OPTIONS.cellsShown,
-      transitionSpeed: value.transitionSpeed ?? DEFAULT_OPTIONS.transitionSpeed,
-      displayShowcase: value.displayShowcase ?? DEFAULT_OPTIONS.displayShowcase,
-      showcasePosition:
-        value.showcasePosition ?? DEFAULT_OPTIONS.showcasePosition,
-      showcaseSizePercentage:
-        value.showcaseSizePercentage ?? DEFAULT_OPTIONS.showcaseSizePercentage,
-      showcaseAccent: value.showcaseAccent ?? DEFAULT_OPTIONS.showcaseAccent,
-      displayDots: value.displayDots ?? DEFAULT_OPTIONS.displayDots,
-      displayArrows: value.displayArrows ?? DEFAULT_OPTIONS.displayArrows,
-      autoplay: value.autoplay ?? DEFAULT_OPTIONS.autoplay,
-      autoplayInterval:
-        value.autoplayInterval ?? DEFAULT_OPTIONS.autoplayInterval,
-      imageFit: value.imageFit ?? DEFAULT_OPTIONS.imageFit,
-      rtl: value.rtl ?? DEFAULT_OPTIONS.rtl,
-      loop: value.loop ?? DEFAULT_OPTIONS.loop,
-    }),
+    transform: transformOptionsInput,
   })
   options: SolariumCarouselOptions = DEFAULT_OPTIONS;
 
@@ -68,17 +44,12 @@ export class SolariumCarouselComponent implements OnInit, OnDestroy {
   destroy$: Subject<boolean> = new Subject<boolean>();
 
   currentContentIndex = signal<number>(0);
-  currentTransition = signal(0);
+  currentTransition = signal<number>(0);
   contentCount = computed<number>(() => this.images?.length);
-  showcaseSizePercentage = computed<number>(() => {
-    const highestPercentage = 100;
-    const lowestPercentage = 0;
-    const percentage: number =
-      (this.options?.showcaseSizePercentage ?? lowestPercentage) /
-      highestPercentage;
-    return Math.max(Math.min(percentage, highestPercentage), lowestPercentage);
-  });
-  sliderSizePercentage = computed<number>(() => 1 - this.showcaseSizePercentage());
+  showcaseSizePercentage = computed<number>(this._computeShowcaseSizePercentage);
+  sliderSizePercentage = computed<number>(
+    () => 1 - this.showcaseSizePercentage()
+  );
 
   showcaseHorizontal: boolean = false;
   dragTranslate: number = 0;
@@ -281,6 +252,15 @@ export class SolariumCarouselComponent implements OnInit, OnDestroy {
     this._setTimeout(() => {
       this.currentTransition.set(0);
     });
+  }
+
+  private _computeShowcaseSizePercentage(): number {
+    const highestPercentage = 100;
+    const lowestPercentage = 0;
+    const percentage: number =
+      (this.options?.showcaseSizePercentage ?? lowestPercentage) /
+      highestPercentage;
+    return Math.max(Math.min(percentage, highestPercentage), lowestPercentage);
   }
 
   private _setTimeout(callback: () => void, timeout: number = 0): void {

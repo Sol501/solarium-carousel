@@ -53,7 +53,7 @@
 					[ngClass]="{
 						'showcase__item--active': i === currentContentIndex()
 					}"
-					[style.borderColor]="i == currentContentIndex()? options.showcaseAccent : '#00000011'"
+					[style.borderColor]="i === currentContentIndex()? options.showcaseAccent : '#00000011'"
 					[style.width]="showcaseHorizontal? '100%' : ((slider.offsetWidth * showcaseSizePercentage()) + 'px')"
 					[style.height]="!showcaseHorizontal? '100%' : ((slider.offsetHeight * showcaseSizePercentage()) + 'px')"
 					(click)="jumpToIndex(options.loop? i + 1 : i)">
