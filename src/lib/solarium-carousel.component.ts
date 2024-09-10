@@ -182,6 +182,13 @@ export class SolariumCarouselComponent implements OnInit, OnDestroy {
     this._changeCurrentContent(
       this.currentContentIndex() - (this.options?.cellsShown ?? 0)
     );
+    if (
+      !this.options?.loop &&
+      this.options?.autoplay &&
+      this._autoplayDisabled
+    ) {
+      this._autoplayDisabled = false;
+    }
     if (!this.options?.loop && this.currentContentIndex() < 0) {
       this._changeCurrentContent(0);
     } else if (this.options?.loop && this.currentContentIndex() < 1) {
