@@ -1,5 +1,5 @@
 export interface SolariumImage{
-    path: string;
-    action?: string;
+    src: string;
     alt?: string;
+    actionUrl?: string;
 }

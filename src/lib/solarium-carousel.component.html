@@ -1,0 +1,117 @@
+<div 
+	[ngClass]="['slider', 'slider--' + options.showcasePosition]" 
+	#slider>
+	<div 
+		class="slider__container"
+		[style.padding]="options.displayShowcase? (showcaseHorizontal? '0 .5rem' : '.5rem 0') : '0'"
+		[style.minHeight]="(options.displayShowcase && !showcaseHorizontal? slider.offsetHeight * sliderSizePercentage() : slider.offsetHeight) + 'px'" 
+		[style.transition]="currentTransition() + 'ms ease-out'" 
+		[style.transform]="isDrag? 'translateX(-' + dragTranslate + 'px)' : 'translateX(-' + (slider.offsetWidth * currentContentIndex()) + 'px)'"
+		(touchstart)="onDragStart($event, slider.offsetWidth)"
+		(touchmove)="onContentDrag($event)"
+		(touchend)="onDragEnd(slider.offsetWidth)">
+		@if (!!images) {
+			@if (options.loop) {
+				<div 
+					class="slider__image-container" 
+					[style.width]="(options.displayShowcase && showcaseHorizontal? slider.offsetWidth * sliderSizePercentage() : slider.offsetWidth) + 'px'" 
+					[style.cursor]="images[contentCount() - 1].actionUrl? 'pointer' : 'default'"
+					(click)="onContentClick(contentCount() - 1)">
+					<img [src]="images[contentCount() - 1].src" [alt]="images[contentCount() - 1].alt? images[contentCount() - 1].alt : ''" [style.objectFit]="options.imageFit">
+				</div>
+			}
+			@for (image of images; track image; let i = $index) {
+				<div 
+					class="slider__image-container" 
+					[style.width]="(options.displayShowcase && showcaseHorizontal? slider.offsetWidth * sliderSizePercentage() : slider.offsetWidth) + 'px'" 
+					[style.cursor]="image?.actionUrl? 'pointer' : 'default'"
+					(click)="onContentClick(i)">
+					<img [src]="image?.src" [alt]="image?.alt? image?.alt : ''" [style.objectFit]="options.imageFit">
+				</div>
+			}
+			@if (options.loop) {
+				<div 
+					class="slider__image-container" 
+					[style.width]="(options.displayShowcase && showcaseHorizontal? slider.offsetWidth * sliderSizePercentage() : slider.offsetWidth) + 'px'" 
+					[style.cursor]="images[0].actionUrl? 'pointer' : 'default'"
+					(click)="onContentClick(0)">
+					<img [src]="images[0].src" [alt]="images[0].alt? images[0].alt : ''" [style.objectFit]="options.imageFit">
+				</div>
+			}
+		}
+	</div>
+	@if (options.displayShowcase && !!images) {
+		<div 
+			class="showcase"
+			[style.minHeight]="!showcaseHorizontal? (slider.offsetHeight * showcaseSizePercentage()) + 'px' : 'fit-content'" 
+			[style.width]="showcaseHorizontal? (slider.offsetWidth * showcaseSizePercentage()) + 'px' : 'fit-content'" 
+			[style.flexDirection]="showcaseHorizontal? 'column' : 'row'">
+			<div class="showcase__back"></div>
+			@for (image of images; track image; let i = $index) {
+				<div 
+					class="showcase__item"
+					[ngClass]="{
+						'showcase__item--active': i === currentContentIndex()
+					}"
+					[style.borderColor]="i === currentContentIndex()? options.showcaseAccent : '#00000011'"
+					[style.width]="showcaseHorizontal? '100%' : ((slider.offsetWidth * showcaseSizePercentage()) + 'px')"
+					[style.height]="!showcaseHorizontal? '100%' : ((slider.offsetHeight * showcaseSizePercentage()) + 'px')"
+					(click)="jumpToIndex(options.loop? i + 1 : i)">
+					<img [src]="image?.src" [alt]="image?.alt">
+				</div>
+			}
+			<div class="showcase__forward"></div>
+		</div>
+	}
+	@if (this.contentCount() > 1 && options.displayDots) {
+		<div 
+			class="dots" 
+			#dotsEl 
+			[style.right]="'calc(50% - ' + dotsEl.offsetWidth / 2 + 'px)'"
+			(mouseover)="disableAutoplay()"
+			(mouseleave)="enableAutoplay()">
+			@for (image of images; track image; let i = $index) {
+				<div 
+					class="dots__container"
+					[ngClass]="{
+						'dots__container--active': (options.loop? i + 1 : i) === currentContentIndex()
+					}"
+					(click)="jumpToIndex(options.loop? i + 1 : i)">
+					<span class="dots__circle"></span>
+				</div>
+			}
+		</div>
+	}
+	@if (this.contentCount() > 1 && options.displayArrows && (options.loop || currentContentIndex() !== 0)) {
+		<div 
+			class="arrow-wrapper" 
+			[ngClass]="options.rtl? 'arrow-wrapper--previous-rtl' : 'arrow-wrapper--previous'"
+			(mouseleave)="enableAutoplay()" 
+			(mouseover)="disableAutoplay()" 
+			(click)="options.rtl? next() : previous()">
+			<div 
+				class="arrow-wrapper__arrow"
+				[ngClass]="options.rtl? 'arrow-wrapper__arrow--previous-rtl' : 'arrow-wrapper__arrow--previous'">
+				<span 
+					class="arrow-wrapper__icon"
+					[ngClass]="options.rtl? 'arrow-wrapper__icon--right' : 'arrow-wrapper__icon--left'"></span>
+			</div>
+		</div>
+	}
+	@if (this.contentCount() > 1 && options.displayArrows && (options.loop || currentContentIndex() !== contentCount() - 1)) {
+		<div 
+			class="arrow-wrapper" 
+			[ngClass]="options.rtl? 'arrow-wrapper--next-rtl' : 'arrow-wrapper--next'"
+			(mouseleave)="enableAutoplay()" 
+			(mouseover)="disableAutoplay()" 
+			(click)="options.rtl? previous() : next()">
+			<div 
+				class="arrow-wrapper__arrow"
+				[ngClass]="options.rtl? 'arrow-wrapper__arrow--next-rtl' : 'arrow-wrapper__arrow--next'">
+				<span 
+					class="arrow-wrapper__icon"
+					[ngClass]="options.rtl? 'arrow-wrapper__icon--left' : 'arrow-wrapper__icon--right'"></span>
+			</div>
+		</div>
+	}
+</div>
