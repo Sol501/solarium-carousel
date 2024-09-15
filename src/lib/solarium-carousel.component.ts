@@ -16,7 +16,14 @@ import {
   DRAG_THRESHOLD,
   DEFAULT_TRANSITION_SPEED,
 } from "./_models";
-import { interval, Subject, takeUntil, timer } from "rxjs";
+import {
+  filter,
+  interval,
+  Subject,
+  Subscription,
+  takeUntil,
+  timer,
+} from "rxjs";
 import { NgClass } from "@angular/common";
 import { transformImageInput, transformOptionsInput } from "./_functions";
 
@@ -46,7 +53,9 @@ export class SolariumCarouselComponent implements OnInit, OnDestroy {
   currentContentIndex = signal<number>(0);
   currentTransition = signal<number>(0);
   contentCount = computed<number>(() => this.images?.length);
-  showcaseSizePercentage = computed<number>(this._computeShowcaseSizePercentage);
+  showcaseSizePercentage = computed<number>(
+    this._computeShowcaseSizePercentage
+  );
   sliderSizePercentage = computed<number>(
     () => 1 - this.showcaseSizePercentage()
   );
@@ -61,6 +70,7 @@ export class SolariumCarouselComponent implements OnInit, OnDestroy {
   private _isScrolling: boolean = false;
   private _touchStartX: number = 0;
   private _touchStartY: number = 0;
+  private _autoplayIntervalSubscription: Subscription = new Subscription();
 
   constructor(private router: Router) {}
 
@@ -81,7 +91,7 @@ export class SolariumCarouselComponent implements OnInit, OnDestroy {
     if (this._isScrolling) {
       return;
     }
-    this._autoplayDisabled = true;
+    this.disableAutoplay();
     this.isDrag = true;
     this._dragStart = e.pageX || e.touches[0].pageX;
     this.dragTranslate = this.currentContentIndex() * sliderWidth;
@@ -89,7 +99,7 @@ export class SolariumCarouselComponent implements OnInit, OnDestroy {
   }
 
   onDragEnd(sliderWidth: number): void {
-    this._autoplayDisabled = false;
+    this.enableAutoplay();
     this.isDrag = false;
     let closestIndex = Math.round(this.dragTranslate / sliderWidth);
     let loopIndex = closestIndex;
@@ -142,10 +152,12 @@ export class SolariumCarouselComponent implements OnInit, OnDestroy {
 
   enableAutoplay(): void {
     this._autoplayDisabled = false;
+    this._setupAutoplay();
   }
 
   disableAutoplay(): void {
     this._autoplayDisabled = true;
+    this._autoplayIntervalSubscription.unsubscribe();
   }
 
   jumpToIndex(newIndex: number): void {
@@ -184,10 +196,11 @@ export class SolariumCarouselComponent implements OnInit, OnDestroy {
     );
     if (
       !this.options?.loop &&
+      this.currentContentIndex() === 0 &&
       this.options?.autoplay &&
       this._autoplayDisabled
     ) {
-      this._autoplayDisabled = false;
+      this.enableAutoplay();
     }
     if (!this.options?.loop && this.currentContentIndex() < 0) {
       this._changeCurrentContent(0);
@@ -240,12 +253,14 @@ export class SolariumCarouselComponent implements OnInit, OnDestroy {
     if (!this.options?.autoplay) {
       return;
     }
-    interval(this.options?.autoplayInterval)
-      .pipe(takeUntil(this.destroy$))
+    this._autoplayIntervalSubscription = interval(
+      this.options?.autoplayInterval
+    )
+      .pipe(
+        takeUntil(this.destroy$),
+        filter(() => this.contentCount() > 1)
+      )
       .subscribe(() => {
-        if (this.contentCount() <= 1 || this._autoplayDisabled) {
-          return;
-        }
         this.next();
       });
   }
